@@ -13,8 +13,10 @@
 
 
 #include <stdio.h>
+#include <string.h>
 
 #include <bus/PCI.h>
+#include <bus/FDT.h>
 #include <ACPI.h>
 #include "acpi.h"
 #include <USB3.h>
@@ -113,6 +115,18 @@ xhci_sync_physical_vectors(const generic_io_vec* vecs, size_t count)
 
 device_manager_info* gDeviceManager;
 static usb_for_controller_interface* gUSB;
+
+
+static fdt_device_module_info*
+get_fdt(device_node* node, fdt_device** _dev)
+{
+	fdt_device_module_info* module;
+	if (gDeviceManager->get_driver(node, (driver_module_info**)&module,
+			(void**)_dev) != B_OK) {
+		return NULL;
+	}
+	return module;
+}
 
 
 #define XHCI_PCI_DEVICE_MODULE_NAME "busses/usb/xhci/pci/driver_v1"
@@ -239,6 +253,62 @@ init_device_acpi(device_node* node, xhci_pci_sim_info* bus)
 }
 
 
+// FDT attachment ("snps,dwc3"), used by memory-mapped DesignWare
+// controllers such as the RK3399's. The wrapper's clocks and PHYs are
+// left as the firmware set them up.
+static status_t
+init_device_fdt(device_node* node, xhci_pci_sim_info* bus)
+{
+	device_node* fdtParent = gDeviceManager->get_parent_node(node);
+	fdt_device* dev;
+	fdt_device_module_info* module = get_fdt(fdtParent, &dev);
+	gDeviceManager->put_node(fdtParent);
+	if (module == NULL) {
+		TRACE_MODULE_ERROR("FDT: no device tree node\n");
+		return B_DEVICE_NOT_FOUND;
+	}
+
+	uint64 address = 0, length = 0;
+	if (!module->get_reg(dev, 0, &address, &length) || address == 0) {
+		TRACE_MODULE_ERROR("FDT: missing xHCI registers\n");
+		return B_DEVICE_NOT_FOUND;
+	}
+
+	// The DWC3 reg window is 0x1000, but the xHCI runtime and doorbell
+	// registers extend past it; Linux maps 0x8000 for this controller.
+	const uint64 minimumLength = 0x8000;
+	if (length < minimumLength)
+		length = minimumLength;
+
+	uint64 irq = 0;
+	if (!module->get_interrupt(dev, 0, NULL, &irq) || irq == 0 || irq > 0xff) {
+		TRACE_MODULE_ERROR("FDT: missing or out-of-range xHCI interrupt\n");
+		return B_DEVICE_NOT_FOUND;
+	}
+
+	dprintf("xhci: FDT controller at %#" B_PRIxPHYSADDR ", length %#"
+		B_PRIx64 ", irq %" B_PRIu64 "\n", (phys_addr_t)address, length, irq);
+
+	pci_info* info = &bus->pciinfo;
+	memset(info, 0, sizeof(pci_info));
+	info->vendor_id = 0xffff;
+	info->device_id = 0xffff;
+	info->class_base = PCI_serial_bus;
+	info->class_sub = PCI_usb;
+	info->class_api = PCI_usb_xhci;
+	info->u.h0.base_registers[0] = (uint32)address;
+	info->u.h0.base_registers[1] = (uint32)(address >> 32);
+	info->u.h0.base_register_flags[0] = PCI_address_type_64;
+	info->u.h0.base_register_sizes[0] = (uint32)length;
+	info->u.h0.interrupt_line = (uint8)irq;
+
+	bus->pci = NULL;
+	bus->device = NULL;
+	bus->trb_prefetch_quirk = false;
+	return B_OK;
+}
+
+
 //	#pragma mark -
 
 
@@ -331,9 +401,19 @@ init_device(device_node* node, void** device_cookie)
 		device_node* parent = gDeviceManager->get_parent_node(node);
 		gDeviceManager->get_attr_string(parent, B_DEVICE_BUS, &busName, false);
 		bool isACPI = busName != NULL && strcmp(busName, "acpi") == 0;
+		bool isFDT = busName != NULL && strcmp(busName, "fdt") == 0;
 		gDeviceManager->put_node(parent);
 		if (isACPI) {
 			status_t status = init_device_acpi(node, bus);
+			if (status != B_OK) {
+				free(bus);
+				return status;
+			}
+			*device_cookie = bus;
+			return B_OK;
+		}
+		if (isFDT) {
+			status_t status = init_device_fdt(node, bus);
 			if (status != B_OK) {
 				free(bus);
 				return status;
@@ -398,6 +478,32 @@ supports_device(device_node* parent)
 	if (gDeviceManager->get_attr_string(parent, B_DEVICE_BUS, &bus, false)
 		< B_OK) {
 		return -1;
+	}
+
+	if (strcmp(bus, "fdt") == 0) {
+		fdt_device* dev;
+		fdt_device_module_info* module = get_fdt(parent, &dev);
+		if (module == NULL)
+			return 0.0f;
+
+		int length;
+		const char* compatible = (const char*)module->get_prop(dev,
+			"compatible", &length);
+		const char* status = (const char*)module->get_prop(dev, "status",
+			&length);
+		const char* mode = (const char*)module->get_prop(dev, "dr_mode",
+			&length);
+		if (compatible == NULL || strstr(compatible, "snps,dwc3") == NULL)
+			return 0.0f;
+		if (status != NULL && strcmp(status, "okay") != 0
+			&& strcmp(status, "ok") != 0)
+			return 0.0f;
+		// A peripheral-only DWC3 has no host controller to drive.
+		if (mode != NULL && strcmp(mode, "host") != 0)
+			return 0.0f;
+
+		TRACE_MODULE("XHCI FDT device found!\n");
+		return 0.8f;
 	}
 
 	if (strcmp(bus, "acpi") == 0) {
