@@ -56,6 +56,31 @@ static const bigtime_t kDataTimeout = 5000000;
 static device_manager_info* sDeviceManager;
 
 
+#if defined(__aarch64__)
+/*!	Cleans and invalidates the data cache for a range to the point of
+	coherency. The internal DMA engine is not coherent with the CPU on this
+	SoC, so anything it reads has to reach memory first.
+*/
+static void
+clean_invalidate_dcache(void* address, size_t length)
+{
+	uint64 ctr;
+	asm volatile ("mrs %0, ctr_el0" : "=r"(ctr));
+	size_t lineSize = 4 << ((ctr >> 16) & 0xf);
+	uintptr_t start = (uintptr_t)address & ~(lineSize - 1);
+	uintptr_t end = (uintptr_t)address + length;
+	for (uintptr_t line = start; line < end; line += lineSize)
+		asm volatile ("dc civac, %0" : : "r"(line) : "memory");
+	asm volatile ("dsb sy" : : : "memory");
+}
+#else
+static void
+clean_invalidate_dcache(void*, size_t)
+{
+}
+#endif
+
+
 static const char* const kCompatible[] = {
 	"starfive,jh7110-mmc",
 	"snps,dw-mshc",
@@ -771,6 +796,9 @@ DwMmc::_SetupDescriptors(IOOperation* operation, uint32* _length)
 		: &((dw_mmc_desc32*)fDescriptors)[index - 1].des0;
 	*des0 = (*des0 & ~(DW_MMC_DES0_DIC | DW_MMC_DES0_CH)) | DW_MMC_DES0_LD;
 
+	// make the chain visible to the IDMAC before it fetches it
+	clean_invalidate_dcache(fDescriptors,
+		index * (f64BitDma ? sizeof(dw_mmc_desc64) : sizeof(dw_mmc_desc32)));
 	__sync_synchronize();
 	*_length = total;
 	return B_OK;
