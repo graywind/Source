@@ -77,6 +77,7 @@ RemotePackageRepository HaikuPorts
 	# repository architecture packages
 	# primary architecture (arm64)
 	autoconf-2.72-1
+	automake-1.19-1
 	bash-5.3.015-1
 	bc-1.07.1-2
 	benchmark-1.9.4-1

@@ -180,7 +180,7 @@ rule DefineDefaultBuildProfiles
 				# Added before OptionalPackages, so they skip _packages_.
 				AddHaikuImageSystemPackages
 					# the Development and DevelopmentBase toolchain
-					autoconf binutils bison cdrtools flex gcc jam
+					autoconf automake binutils bison cdrtools flex gcc jam
 					libjpeg_turbo_devel libpng16_devel m4 make mawk
 					mkdepend mpc mpfr nasm openssl3_devel patch pkgconfig
 					texinfo zlib_devel zstd_devel
