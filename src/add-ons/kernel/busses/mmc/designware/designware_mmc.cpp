@@ -820,6 +820,9 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 
 	MutexLocker locker(fLock);
 
+	static int32 sLoggedTransfers = 0;
+	const bool logThis = atomic_add(&sLoggedTransfers, 1) < 8;
+
 	uint32 length;
 	status_t status = _SetupDescriptors(operation, &length);
 	if (status != B_OK)
@@ -868,6 +871,7 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL) | DW_MMC_CTRL_DMA_ENABLE
 		| DW_MMC_CTRL_USE_IDMAC);
 	_Write(DW_MMC_BMOD, DW_MMC_BMOD_FB | DW_MMC_BMOD_DE);
+	if (logThis)
 	dprintf("dw_mmc: bmod %#" B_PRIx32 " ctrl %#" B_PRIx32
 		", dbaddr %#" B_PRIxPHYSADDR "\n", _Read(DW_MMC_BMOD),
 		_Read(DW_MMC_CTRL),
@@ -880,18 +884,19 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	if (multiple)
 		flags |= DW_MMC_CMD_SEND_STOP;	// CMD12 sent by the controller
 
+	if (logThis)
 	dprintf("dw_mmc: data cmd %u %s len %" B_PRIu32 ", ctype %#" B_PRIx32
 		", clkena %#" B_PRIx32 ", clkdiv %" B_PRIu32 ", blksiz %" B_PRIu32
 		", bytcnt %" B_PRIu32 ", idmac %s, desc %#" B_PRIxPHYSADDR "\n",
 		command, isWrite ? "write" : "read", length, _Read(DW_MMC_CTYPE),
 		_Read(DW_MMC_CLKENA), _Read(DW_MMC_CLKDIV), _Read(DW_MMC_BLKSIZ),
 		_Read(DW_MMC_BYTCNT), f64BitDma ? "64" : "32", fDescPhys);
-	if (f64BitDma) {
+	if (logThis && f64BitDma) {
 		dw_mmc_desc64* d = (dw_mmc_desc64*)fDescriptors;
 		dprintf("dw_mmc: desc0 %#" B_PRIx32 " size %" B_PRIu32
 			" addr %#" B_PRIx32 "%08" B_PRIx32 "\n", d->des0, d->des2,
 			d->des5, d->des4);
-	} else {
+	} else if (logThis) {
 		dw_mmc_desc32* d = (dw_mmc_desc32*)fDescriptors;
 		dprintf("dw_mmc: desc0 %#" B_PRIx32 " size %" B_PRIu32
 			" addr %#" B_PRIx32 "\n", d->des0, d->des1, d->des2);
@@ -901,6 +906,7 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	status = _Execute(command, offset / (offsetAsSectors ? kBlockSize : 1),
 		flags, &response, true);
 
+	if (status != B_OK)
 	dprintf("dw_mmc: after cmd %u: rintsts %#" B_PRIx32 ", idsts %#" B_PRIx32
 		", bytcnt %" B_PRIu32 ", des0 %#" B_PRIx32 ", dscaddr %#" B_PRIx32
 		", tcbcnt %" B_PRIu32 ", tbbcnt %" B_PRIu32 ", status %s\n",
