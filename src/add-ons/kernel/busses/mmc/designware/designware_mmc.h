@@ -23,6 +23,9 @@
 #define DW_MMC_CLKENA			0x010
 #define DW_MMC_TMOUT			0x014
 #define DW_MMC_CTYPE			0x018
+#define DW_MMC_TCBCNT			0x05c	// bytes across the card interface
+#define DW_MMC_TBBCNT			0x060	// bytes across the host/FIFO interface
+#define DW_MMC_DSCADDR			0x094	// current descriptor address, 32 bit
 #define DW_MMC_BLKSIZ			0x01c
 #define DW_MMC_BYTCNT			0x020
 #define DW_MMC_INTMASK			0x024

@@ -880,11 +880,14 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 		flags, &response, true);
 
 	dprintf("dw_mmc: after cmd %u: rintsts %#" B_PRIx32 ", idsts %#" B_PRIx32
-		", bytcnt %" B_PRIu32 ", des0 %#" B_PRIx32 "\n", command,
-		_Read(DW_MMC_RINTSTS), _Read(f64BitDma ? DW_MMC_IDSTS64
+		", bytcnt %" B_PRIu32 ", des0 %#" B_PRIx32 ", dscaddr %#" B_PRIx32
+		", tcbcnt %" B_PRIu32 ", tbbcnt %" B_PRIu32 ", status %s\n",
+		command, _Read(DW_MMC_RINTSTS), _Read(f64BitDma ? DW_MMC_IDSTS64
 			: DW_MMC_IDSTS32), _Read(DW_MMC_BYTCNT),
 		f64BitDma ? ((dw_mmc_desc64*)fDescriptors)->des0
-			: ((dw_mmc_desc32*)fDescriptors)->des0);
+			: ((dw_mmc_desc32*)fDescriptors)->des0,
+		f64BitDma ? 0 : _Read(DW_MMC_DSCADDR), _Read(DW_MMC_TCBCNT),
+		_Read(DW_MMC_TBBCNT), strerror(status));
 
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL)
 		& ~(DW_MMC_CTRL_DMA_ENABLE | DW_MMC_CTRL_USE_IDMAC));
