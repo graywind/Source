@@ -71,3 +71,5 @@ load_symbols true
 
 #qemu_single_step_hack true
 	# Activates a hack that allows single-stepping under QEMU to work.
+
+debug_screen true
