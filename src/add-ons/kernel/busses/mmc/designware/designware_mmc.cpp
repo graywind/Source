@@ -491,6 +491,10 @@ DwMmc::SetClock(uint32 kilohertz)
 		return status;
 
 	fClockKHz = kilohertz;
+	dprintf("dw_mmc: clock %" B_PRIu32 " kHz, divider %" B_PRIu32
+		", ciu assumed %" B_PRIu32 " Hz, actual %" B_PRIu32 " Hz\n",
+		kilohertz, divider, fCiuRate,
+		divider == 0 ? fCiuRate / 2 : fCiuRate / (2 * divider));
 	TRACE("card clock %" B_PRIu32 " kHz (divider %" B_PRIu32 ")\n",
 		divider == 0 ? fCiuRate / 1000 : fCiuRate / (2000 * divider),
 		divider);
@@ -799,9 +803,33 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	if (multiple)
 		flags |= DW_MMC_CMD_SEND_STOP;	// CMD12 sent by the controller
 
+	dprintf("dw_mmc: data cmd %u %s len %" B_PRIu32 ", ctype %#" B_PRIx32
+		", clkena %#" B_PRIx32 ", clkdiv %" B_PRIu32 ", blksiz %" B_PRIu32
+		", bytcnt %" B_PRIu32 ", idmac %s, desc %#" B_PRIxPHYSADDR "\n",
+		command, isWrite ? "write" : "read", length, _Read(DW_MMC_CTYPE),
+		_Read(DW_MMC_CLKENA), _Read(DW_MMC_CLKDIV), _Read(DW_MMC_BLKSIZ),
+		_Read(DW_MMC_BYTCNT), f64BitDma ? "64" : "32", fDescPhys);
+	if (f64BitDma) {
+		dw_mmc_desc64* d = (dw_mmc_desc64*)fDescriptors;
+		dprintf("dw_mmc: desc0 %#" B_PRIx32 " size %" B_PRIu32
+			" addr %#" B_PRIx32 "%08" B_PRIx32 "\n", d->des0, d->des2,
+			d->des5, d->des4);
+	} else {
+		dw_mmc_desc32* d = (dw_mmc_desc32*)fDescriptors;
+		dprintf("dw_mmc: desc0 %#" B_PRIx32 " size %" B_PRIu32
+			" addr %#" B_PRIx32 "\n", d->des0, d->des1, d->des2);
+	}
+
 	uint32 response;
 	status = _Execute(command, offset / (offsetAsSectors ? kBlockSize : 1),
 		flags, &response, true);
+
+	dprintf("dw_mmc: after cmd %u: rintsts %#" B_PRIx32 ", idsts %#" B_PRIx32
+		", bytcnt %" B_PRIu32 ", des0 %#" B_PRIx32 "\n", command,
+		_Read(DW_MMC_RINTSTS), _Read(f64BitDma ? DW_MMC_IDSTS64
+			: DW_MMC_IDSTS32), _Read(DW_MMC_BYTCNT),
+		f64BitDma ? ((dw_mmc_desc64*)fDescriptors)->des0
+			: ((dw_mmc_desc32*)fDescriptors)->des0);
 
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL)
 		& ~(DW_MMC_CTRL_DMA_ENABLE | DW_MMC_CTRL_USE_IDMAC));
