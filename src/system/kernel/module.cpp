@@ -695,7 +695,9 @@ get_dependent_modules(struct module* module)
 
 	TRACE(("resolving module dependencies...\n"));
 
-	static const char* sReportedDependencies[8];
+	// The names are copied: they live in the dependent add-on's image, which
+	// may be unloaded before the next failure is tested.
+	static char sReportedDependencies[8][64];
 	static int32 sReportedDependencyCount = 0;
 
 	for (int32 i = 0; dependencies[i].name != NULL; i++) {
@@ -716,8 +718,9 @@ get_dependent_modules(struct module* module)
 			if (!reported
 				&& sReportedDependencyCount
 					< (int32)B_COUNT_OF(sReportedDependencies)) {
-				sReportedDependencies[sReportedDependencyCount++]
-					= dependencies[i].name;
+				strlcpy(sReportedDependencies[sReportedDependencyCount],
+					dependencies[i].name, sizeof(sReportedDependencies[0]));
+				sReportedDependencyCount++;
 				dprintf("loading dependent module %s of %s failed!\n",
 					dependencies[i].name, module->name);
 			}
