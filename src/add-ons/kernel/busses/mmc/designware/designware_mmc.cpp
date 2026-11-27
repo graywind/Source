@@ -825,6 +825,22 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	if (status != B_OK)
 		return status;
 
+	// The IDMAC does not snoop the CPU caches. Drop any stale lines covering
+	// the buffers so the controller's view of memory is what it acts on, and
+	// the CPU refetches what it reads back. The vectors are known here only
+	// by physical address, so map each one briefly.
+	for (uint32 i = 0; i < operation->VecCount(); i++) {
+		const generic_io_vec& vec = operation->Vecs()[i];
+		void* mapped = NULL;
+		area_id area = map_physical_memory("dw_mmc dma buffer",
+			(phys_addr_t)vec.base, (size_t)vec.length, B_ANY_KERNEL_ADDRESS,
+			B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA, &mapped);
+		if (area >= B_OK) {
+			clean_invalidate_dcache(mapped, vec.length);
+			delete_area(area);
+		}
+	}
+
 	bool isWrite = operation->IsWrite();
 	bool multiple = command == SD_READ_MULTIPLE_BLOCKS
 		|| command == SD_WRITE_MULTIPLE_BLOCKS;
