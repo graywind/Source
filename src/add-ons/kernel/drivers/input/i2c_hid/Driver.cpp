@@ -10,6 +10,7 @@
 
 #include <ACPI.h>
 #include <device_manager.h>
+#include <KernelExport.h>
 #include <i2c.h>
 
 #include "DeviceList.h"
@@ -55,6 +56,21 @@ struct device_cookie {
 
 static device_manager_info *sDeviceManager;
 static acpi_module_info* gACPI;
+
+
+/*!	Loads the ACPI module on first use.
+
+	It is not a static dependency on purpose: every probe of this driver would
+	resolve it, and on a platform without ACPI that fails and logs for each of
+	them. Nothing here needs ACPI before a real I2C HID device is found.
+*/
+static status_t
+ensure_acpi()
+{
+	if (gACPI != NULL)
+		return B_OK;
+	return get_module(B_ACPI_MODULE_NAME, (module_info**)&gACPI);
+}
 
 DeviceList *gDeviceList = NULL;
 static mutex sDriverLock;
@@ -327,6 +343,9 @@ i2c_hid_register_device(device_node *node)
 		return B_DEVICE_NOT_FOUND;
 	}
 
+	if (ensure_acpi() != B_OK)
+		return B_DEVICE_NOT_FOUND;
+
 	static uint8_t acpiHidGuid[] = { 0xF7, 0xF6, 0xDF, 0x3C, 0x67, 0x42, 0x55,
 		0x45, 0xAD, 0x05, 0xB3, 0x0A, 0x3D, 0x89, 0x38, 0xDE };
 	acpi_object_type* object = acpi_evaluate_dsm(handle, acpiHidGuid, 1, 1);
@@ -383,8 +402,8 @@ i2c_hid_init_driver(device_node *node, void **driverCookie)
 	if (sDeviceManager->get_attr_uint64(parent, ACPI_DEVICE_HANDLE_ITEM,
 			&handlePointer, false) == B_OK) {
 		inputReady = new(std::nothrow) InputReadyLine;
-		if (inputReady != NULL
-			&& inputReady->Init(gACPI, (acpi_handle)handlePointer) != B_OK) {
+		if (inputReady != NULL && (ensure_acpi() != B_OK
+			|| inputReady->Init(gACPI, (acpi_handle)handlePointer) != B_OK)) {
 			delete inputReady;
 			inputReady = NULL;
 		}
@@ -540,7 +559,6 @@ struct device_module_info i2c_hid_device_module = {
 
 module_dependency module_dependencies[] = {
 	{ B_DEVICE_MANAGER_MODULE_NAME, (module_info **)&sDeviceManager },
-	{ B_ACPI_MODULE_NAME, (module_info**)&gACPI },
 	{}
 };
 

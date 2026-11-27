@@ -13,6 +13,7 @@
 
 #include <ACPI.h>
 #include <device_manager.h>
+#include <KernelExport.h>
 #include <i2c.h>
 
 #include "DeviceList.h"
@@ -97,6 +98,16 @@ static const char* elan_iic_devs[] = {
 
 static device_manager_info *sDeviceManager;
 static acpi_module_info *sACPI;
+
+
+/*!	Loads the ACPI module on first use, for the same reason as i2c_hid. */
+static status_t
+ensure_acpi()
+{
+	if (sACPI != NULL)
+		return B_OK;
+	return get_module(B_ACPI_MODULE_NAME, (module_info **)&sACPI);
+}
 
 DeviceList *gDeviceList = NULL;
 static mutex sDriverLock;
@@ -305,8 +316,8 @@ i2c_elan_init_driver(device_node *node, void **driverCookie)
 	if (sDeviceManager->get_attr_uint64(parent, ACPI_DEVICE_HANDLE_ITEM,
 			&handlePointer, false) == B_OK) {
 		inputReady = new(std::nothrow) InputReadyLine;
-		if (inputReady != NULL
-			&& inputReady->Init(sACPI, (acpi_handle)handlePointer) != B_OK) {
+		if (inputReady != NULL && (ensure_acpi() != B_OK
+			|| inputReady->Init(sACPI, (acpi_handle)handlePointer) != B_OK)) {
 			delete inputReady;
 			inputReady = NULL;
 		}
@@ -447,7 +458,6 @@ struct device_module_info i2c_elan_device_module = {
 
 module_dependency module_dependencies[] = {
 	{ B_DEVICE_MANAGER_MODULE_NAME, (module_info **)&sDeviceManager },
-	{ B_ACPI_MODULE_NAME, (module_info **)&sACPI },
 	{}
 };
 
