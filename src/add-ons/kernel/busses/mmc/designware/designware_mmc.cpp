@@ -1155,8 +1155,6 @@ register_child_devices(void* cookie)
 	sDeviceManager->put_node(fdtNode);
 	if (!haveRegs)
 		return B_BAD_DATA;
-
-	dprintf("dw_mmc: probe %#" B_PRIx64 "\n", regs);
 	volatile uint32* registers;
 	area_id area = map_physical_memory("dw_mmc probe", regs, DW_MMC_REGS_SIZE,
 		B_ANY_KERNEL_ADDRESS, B_KERNEL_READ_AREA, (void**)&registers);

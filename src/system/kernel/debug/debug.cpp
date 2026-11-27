@@ -1675,6 +1675,13 @@ debug_screen_output_enabled(void)
 
 
 void
+debug_start_screen_debug_output(void)
+{
+	sDebugScreenEnabled = true;
+}
+
+
+void
 debug_stop_screen_debug_output(void)
 {
 	sDebugScreenEnabled = false;
