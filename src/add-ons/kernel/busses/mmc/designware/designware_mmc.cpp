@@ -59,6 +59,10 @@ static device_manager_info* sDeviceManager;
 static const char* const kCompatible[] = {
 	"starfive,jh7110-mmc",
 	"snps,dw-mshc",
+	// Rockchip names its dw-mshc nodes after the SoC and lists no "snps"
+	// compatible, and only the first compatible string is visible here.
+	"rockchip,rk3399-dw-mshc",
+	"rockchip,rk3288-dw-mshc",
 };
 
 
