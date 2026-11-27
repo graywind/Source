@@ -69,7 +69,12 @@ remap_frame_buffer(framebuffer_info& info, addr_t physicalBase, uint32 width,
 		bytesPerRow);
 
 	vm_change_clones_to_null_areas(info.frame_buffer_area);
-	if (info.owns_frame_buffer)
+	// Do not delete the old mapping. The kernel debug console draws into it
+	// from another thread and does not take a lock that
+	// frame_buffer_update() could synchronise with, so deleting it can
+	// fault in draw_cursor() if a log write is in flight. One leaked kernel
+	// mapping is cheaper than that.
+	if (false && info.owns_frame_buffer)
 		delete_area(info.frame_buffer_area);
 
 	info.frame_buffer = frameBuffer;
