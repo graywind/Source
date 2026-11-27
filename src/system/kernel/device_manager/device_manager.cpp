@@ -1769,6 +1769,9 @@ device_node::_GetNextDriverPath(void*& cookie, KPath& _path)
 }
 
 
+static int32 sProbeLogCount = 0;
+
+
 status_t
 device_node::_GetNextDriver(void* list, driver_module_info*& driver)
 {
@@ -1783,6 +1786,8 @@ device_node::_GetNextDriver(void* list, driver_module_info*& driver)
 		if (!strcmp(fModuleName, name))
 			continue;
 
+		if (atomic_add(&sProbeLogCount, 1) < 40)
+			dprintf("dm: module %s\n", name);
 		if (get_module(name, (module_info**)&driver) != B_OK)
 			continue;
 
@@ -1803,6 +1808,9 @@ device_node::_FindBestDriver(const char* path, driver_module_info*& bestDriver,
 {
 	if (bestDriver == NULL)
 		bestSupport = previous != NULL ? previous->fSupportsParent : 0.0f;
+
+	if (atomic_add(&sProbeLogCount, 1) < 40)
+		dprintf("dm: probe %s\n", path);
 
 	void* list = open_module_list_etc(path, "driver_v1");
 	driver_module_info* driver;
