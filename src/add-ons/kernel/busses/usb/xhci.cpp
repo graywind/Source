@@ -116,17 +116,8 @@ xhci_sync_physical_vectors(const generic_io_vec* vecs, size_t count)
 device_manager_info* gDeviceManager;
 static usb_for_controller_interface* gUSB;
 
-
-static fdt_device_module_info*
-get_fdt(device_node* node, fdt_device** _dev)
-{
-	fdt_device_module_info* module;
-	if (gDeviceManager->get_driver(node, (driver_module_info**)&module,
-			(void**)_dev) != B_OK) {
-		return NULL;
-	}
-	return module;
-}
+#include <bus/FDT.h>
+#include "usb_fdt.h"
 
 
 #define XHCI_PCI_DEVICE_MODULE_NAME "busses/usb/xhci/pci/driver_v1"
@@ -261,7 +252,7 @@ init_device_fdt(device_node* node, xhci_pci_sim_info* bus)
 {
 	device_node* fdtParent = gDeviceManager->get_parent_node(node);
 	fdt_device* dev;
-	fdt_device_module_info* module = get_fdt(fdtParent, &dev);
+	fdt_device_module_info* module = usb_fdt_get(fdtParent, &dev);
 	gDeviceManager->put_node(fdtParent);
 	if (module == NULL) {
 		TRACE_MODULE_ERROR("FDT: no device tree node\n");
@@ -286,8 +277,7 @@ init_device_fdt(device_node* node, xhci_pci_sim_info* bus)
 		return B_DEVICE_NOT_FOUND;
 	}
 
-	dprintf("xhci: FDT controller at %#" B_PRIxPHYSADDR ", length %#"
-		B_PRIx64 ", irq %" B_PRIu64 "\n", (phys_addr_t)address, length, irq);
+	usb_rk3399_setup((phys_addr_t)address, length);
 
 	pci_info* info = &bus->pciinfo;
 	memset(info, 0, sizeof(pci_info));
@@ -482,7 +472,7 @@ supports_device(device_node* parent)
 
 	if (strcmp(bus, "fdt") == 0) {
 		fdt_device* dev;
-		fdt_device_module_info* module = get_fdt(parent, &dev);
+		fdt_device_module_info* module = usb_fdt_get(parent, &dev);
 		if (module == NULL)
 			return 0.0f;
 
