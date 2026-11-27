@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ninja-build \
   python3 \
   texinfo \
+  u-boot-tools \
   unzip \
   vim \
   wget \

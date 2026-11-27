@@ -27,6 +27,9 @@
 device_manager_info* gDeviceManager;
 static usb_for_controller_interface* gUSB;
 
+#include <bus/FDT.h>
+#include "usb_fdt.h"
+
 
 #define EHCI_PCI_DEVICE_MODULE_NAME "busses/usb/ehci/pci/driver_v1"
 #define EHCI_PCI_USB_BUS_MODULE_NAME "busses/usb/ehci/device_v1"
@@ -128,21 +131,56 @@ init_device(device_node* node, void** device_cookie)
 	if (bus == NULL)
 		return B_NO_MEMORY;
 
-	pci_device_module_info* pci;
-	pci_device* device;
-	{
+	device_node* parent = gDeviceManager->get_parent_node(node);
+	const char* busName = NULL;
+	gDeviceManager->get_attr_string(parent, B_DEVICE_BUS, &busName, false);
+	gDeviceManager->put_node(parent);
+
+	pci_device_module_info* pci = NULL;
+	pci_device* device = NULL;
+	pci_info *pciInfo = &bus->pciinfo;
+
+	if (busName != NULL && strcmp(busName, "fdt") == 0) {
+		device_node* fdtNode = gDeviceManager->get_parent_node(node);
+		fdt_device* dev;
+		fdt_device_module_info* module = usb_fdt_get(fdtNode, &dev);
+		gDeviceManager->put_node(fdtNode);
+
+		uint64 address = 0, length = 0, irq = 0;
+		if (module == NULL || !module->get_reg(dev, 0, &address, &length)
+			|| address == 0 || length == 0
+			|| !module->get_interrupt(dev, 0, NULL, &irq)
+			|| irq == 0 || irq > 0xff) {
+			TRACE_MODULE_ERROR("fdt: unusable EHCI node\n");
+			free(bus);
+			return B_ERROR;
+		}
+
+		usb_rk3399_setup((phys_addr_t)address, length);
+
+		memset(pciInfo, 0, sizeof(*pciInfo));
+		pciInfo->vendor_id = 0xffff;
+		pciInfo->device_id = 0xffff;
+		pciInfo->class_base = PCI_serial_bus;
+		pciInfo->class_sub = PCI_usb;
+		pciInfo->class_api = PCI_usb_ehci;
+		pciInfo->u.h0.base_registers[0] = (uint32)address;
+		pciInfo->u.h0.base_registers[1] = (uint32)(address >> 32);
+		pciInfo->u.h0.base_register_flags[0] = PCI_address_type_64;
+		pciInfo->u.h0.base_register_sizes[0] = (uint32)length;
+		pciInfo->u.h0.interrupt_line = (uint8)irq;
+	} else {
 		device_node* pciParent = gDeviceManager->get_parent_node(node);
 		gDeviceManager->get_driver(pciParent, (driver_module_info**)&pci,
 			(void**)&device);
 		gDeviceManager->put_node(pciParent);
+
+		pci->get_pci_info(device, pciInfo);
 	}
 
 	bus->pci = pci;
 	bus->device = device;
 	bus->driver_node = node;
-
-	pci_info *pciInfo = &bus->pciinfo;
-	pci->get_pci_info(device, pciInfo);
 
 	*device_cookie = bus;
 	return B_OK;
@@ -184,6 +222,16 @@ supports_device(device_node* parent)
 	if (gDeviceManager->get_attr_string(parent, B_DEVICE_BUS, &bus, false)
 		< B_OK) {
 		return -1;
+	}
+
+	if (strcmp(bus, "fdt") == 0) {
+		fdt_device* dev;
+		fdt_device_module_info* module = usb_fdt_get(parent, &dev);
+		if (module == NULL)
+			return 0.0f;
+		if (!usb_fdt_has_compatible(module, dev, "generic-ehci"))
+			return 0.0f;
+		return 0.8f;
 	}
 
 	if (strcmp(bus, "pci") != 0)
@@ -443,11 +491,14 @@ EHCI::EHCI(pci_info *info, pci_device_module_info* pci, pci_device* device, Stac
 	}
 
 	// enable busmaster and memory mapped access
-	uint16 command = fPci->read_pci_config(fDevice, PCI_command, 2);
-	command &= ~PCI_command_io;
-	command |= PCI_command_master | PCI_command_memory;
+	uint16 command = 0;
+	if (fPci != NULL) {
+		command = fPci->read_pci_config(fDevice, PCI_command, 2);
+		command &= ~PCI_command_io;
+		command |= PCI_command_master | PCI_command_memory;
 
-	fPci->write_pci_config(fDevice, PCI_command, 2, command);
+		fPci->write_pci_config(fDevice, PCI_command, 2, command);
+	}
 
 	// map the registers
 	uint32 offset = fPCIInfo->u.h0.base_registers[0] & (B_PAGE_SIZE - 1);
@@ -517,7 +568,7 @@ EHCI::EHCI(pci_info *info, pci_device_module_info* pci, pci_device* device, Stac
 
 	uint32 extendedCapPointer = ReadCapReg32(EHCI_HCCPARAMS) >> EHCI_ECP_SHIFT;
 	extendedCapPointer &= EHCI_ECP_MASK;
-	if (extendedCapPointer > 0) {
+	if (extendedCapPointer > 0 && fPci != NULL) {
 		TRACE("extended capabilities register at %" B_PRIu32 "\n",
 			extendedCapPointer);
 
@@ -628,7 +679,7 @@ EHCI::EHCI(pci_info *info, pci_device_module_info* pci, pci_device* device, Stac
 		if (fIRQ == 0xFF)
 			fIRQ = 0;
 
-		if (fPci->get_msi_count(fDevice) >= 1) {
+		if (fPci != NULL && fPci->get_msi_count(fDevice) >= 1) {
 			uint32 msiVector = 0;
 			if (fPci->configure_msi(fDevice, 1, &msiVector) == B_OK
 				&& fPci->enable_msi(fDevice) == B_OK) {
@@ -650,14 +701,16 @@ EHCI::EHCI(pci_info *info, pci_device_module_info* pci, pci_device* device, Stac
 	}
 
 	// ensure that interrupts are en-/disabled on the PCI device
-	command = fPci->read_pci_config(fDevice, PCI_command, 2);
-	if ((polling || fUseMSI) == ((command & PCI_command_int_disable) == 0)) {
-		if (polling || fUseMSI)
-			command &= ~PCI_command_int_disable;
-		else
-			command |= PCI_command_int_disable;
+	if (fPci != NULL) {
+		command = fPci->read_pci_config(fDevice, PCI_command, 2);
+		if ((polling || fUseMSI) == ((command & PCI_command_int_disable) == 0)) {
+			if (polling || fUseMSI)
+				command &= ~PCI_command_int_disable;
+			else
+				command |= PCI_command_int_disable;
 
-		fPci->write_pci_config(fDevice, PCI_command, 2, command);
+			fPci->write_pci_config(fDevice, PCI_command, 2, command);
+		}
 	}
 
 	fEnabledInterrupts = EHCI_USBINTR_HOSTSYSERR | EHCI_USBINTR_USBERRINT

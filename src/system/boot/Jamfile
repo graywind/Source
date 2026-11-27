@@ -204,6 +204,7 @@ rule BuildUImageScript script : source
 {
 	Depends $(script) : $(source) ;
 	LocalClean clean : $(script) ;
+	MakeLocateDebug $(script) ;
 	SCRIPTNAME on $(script) = $(script) ;
 	FAKEOS on $(script) = "linux" ;
 	ARCH on $(script) = $(TARGET_ARCH) ;
@@ -414,10 +415,11 @@ for platform in [ MultiBootSubDirSetup ] {
 						: <revisioned>boot_loader_$(TARGET_BOOT_PLATFORM) ;
 				}
 
-				if $(TARGET_ARCH) = arm || $(TARGET_ARCH) = riscv64 {
+				if $(TARGET_ARCH) = arm || $(TARGET_ARCH) = arm64 || $(TARGET_ARCH) = riscv64 {
 					# These EFI platforms need u-boot to get them going
 					BuildUImageScript boot.scr
 						: [ FDirName $(HAIKU_TOP) data boot u-boot boot-$(TARGET_ARCH).scr.txt ] ;
+					Depends haiku_loader.$(TARGET_BOOT_PLATFORM) : boot.scr ;
 				}
 
 			case bios_ia32 :
