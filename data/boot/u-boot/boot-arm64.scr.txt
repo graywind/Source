@@ -1,14 +1,19 @@
 # SPDX-License-Identifier: MIT
 echo "Haiku arm64 u-boot script entry"
-env exists devtype || setenv devtype usb
-env exists devnum || setenv devnum 0
-env exists distro_bootpart && setenv devpart ${distro_bootpart}
-env exists devpart || setenv devpart 1
-echo "Looking for Haiku on ${devtype} ${devnum}:${devpart}"
-fatload ${devtype} ${devnum}:${devpart} ${kernel_addr_r} uEnv.txt
+# devtype/devnum are shell variables in U-Boot's distro boot and do not reach
+# a script started with "source". Use them when the shell does pass them on,
+# otherwise find the image by looking for uEnv.txt on the likely devices.
+setenv haikudev
+test -n "${devtype}" && test -n "${devnum}" && setenv haikudev "${devtype} ${devnum}:1"
+if test -z "${haikudev}"; then if fatload mmc 1:1 ${kernel_addr_r} uEnv.txt; then setenv haikudev "mmc 1:1"; fi; fi
+if test -z "${haikudev}"; then if fatload usb 0:1 ${kernel_addr_r} uEnv.txt; then setenv haikudev "usb 0:1"; fi; fi
+if test -z "${haikudev}"; then if fatload mmc 0:1 ${kernel_addr_r} uEnv.txt; then setenv haikudev "mmc 0:1"; fi; fi
+if test -z "${haikudev}"; then echo "Haiku: no uEnv.txt found"; exit; fi
+echo "Looking for Haiku on ${haikudev}"
 env import -t ${kernel_addr_r} ${filesize}
-fatload ${devtype} ${devnum}:${devpart} ${kernel_addr_r} ${loader}
-env exists dtb && fatload ${devtype} ${devnum}:${devpart} ${fdt_addr_r} ${dtb}
+if test -z "${loader}"; then echo "Haiku: uEnv.txt has no loader= entry"; exit; fi
+fatload ${haikudev} ${kernel_addr_r} ${loader}
+env exists dtb && fatload ${haikudev} ${fdt_addr_r} ${dtb}
 env exists dtb || setenv fdt_addr_r ${fdtcontroladdr}
 test "${platform}" = "efi" && bootefi ${kernel_addr_r} ${fdt_addr_r}
 echo "Haiku u-boot script fell through!"
