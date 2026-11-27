@@ -1208,11 +1208,15 @@ copy_entry(FSDomain *sourceDomain, const char *source,
 		return error;
 	}
 
-	// copy attributes
+	// copy attributes (best-effort: some file systems cannot store them,
+	// which must not prevent copying the file contents)
 	if (!options.ignoreAttributes) {
 		error = copy_attributes(source, sourceNode, target, targetNode);
-		if (error != FSSH_B_OK)
-			return error;
+		if (error != FSSH_B_OK) {
+			fprintf(stderr, "Warning: failed to copy attributes of `%s': %s\n",
+				source, fssh_strerror(error));
+			error = FSSH_B_OK;
+		}
 	}
 
 	// copy contents
