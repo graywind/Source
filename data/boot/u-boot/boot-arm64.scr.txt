@@ -1,17 +1,14 @@
 # SPDX-License-Identifier: MIT
 echo "Haiku arm64 u-boot script entry"
-env exists devtype || echo "ERROR: boot.scr was not started by U-Boot's boot scan!" && exit
-env exists devnum || echo "ERROR: no device number in the environment!" && exit
-test -n "${distro_bootpart}" && setenv devpart ${distro_bootpart}
+env exists devtype || setenv devtype usb
+env exists devnum || setenv devnum 0
+env exists distro_bootpart && setenv devpart ${distro_bootpart}
 env exists devpart || setenv devpart 1
 echo "Looking for Haiku on ${devtype} ${devnum}:${devpart}"
-fatload ${devtype} ${devnum}:${devpart} ${scriptaddr} uEnv.txt || echo "ERROR: no uEnv.txt on ${devtype} ${devnum}:${devpart}!" && exit
-env import -t ${scriptaddr} ${filesize}
-env exists loader || echo "ERROR: uEnv.txt doesn't specify bootloader!" && exit
-env exists platform || echo "ERROR: uEnv.txt doesn't specify platform!" && exit
-echo "Loading ${loader}..."
-fatload ${devtype} ${devnum}:${devpart} ${kernel_addr_r} ${loader} || echo "ERROR: could not load ${loader}!" && exit
+fatload ${devtype} ${devnum}:${devpart} ${kernel_addr_r} uEnv.txt
+env import -t ${kernel_addr_r} ${filesize}
+fatload ${devtype} ${devnum}:${devpart} ${kernel_addr_r} ${loader}
 env exists dtb && fatload ${devtype} ${devnum}:${devpart} ${fdt_addr_r} ${dtb}
 env exists dtb || setenv fdt_addr_r ${fdtcontroladdr}
-test "${platform}" = "efi" && echo "Launching EFI loader..." && bootefi ${kernel_addr_r} ${fdt_addr_r}
-echo "Haiku u-boot script fell through!" && exit
+test "${platform}" = "efi" && bootefi ${kernel_addr_r} ${fdt_addr_r}
+echo "Haiku u-boot script fell through!"
