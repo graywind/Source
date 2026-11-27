@@ -1,0 +1,259 @@
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libfdt1:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23518 files and directories currently installed.)
+Preparing to unpack .../0-libfdt1_1.6.1-4+b1_amd64.deb ...
+Unpacking libfdt1:amd64 (1.6.1-4+b1) ...
+Selecting previously unselected package libyaml-0-2:amd64.
+Preparing to unpack .../1-libyaml-0-2_0.2.5-1_amd64.deb ...
+Unpacking libyaml-0-2:amd64 (0.2.5-1) ...
+Selecting previously unselected package device-tree-compiler.
+Preparing to unpack .../2-device-tree-compiler_1.6.1-4+b1_amd64.deb ...
+Unpacking device-tree-compiler (1.6.1-4+b1) ...
+Selecting previously unselected package libubootenv0.1:amd64.
+Preparing to unpack .../3-libubootenv0.1_0.3.2-1_amd64.deb ...
+Unpacking libubootenv0.1:amd64 (0.3.2-1) ...
+Selecting previously unselected package libubootenv-tool.
+Preparing to unpack .../4-libubootenv-tool_0.3.2-1_amd64.deb ...
+Unpacking libubootenv-tool (0.3.2-1) ...
+Selecting previously unselected package u-boot-tools.
+Preparing to unpack .../5-u-boot-tools_2023.01+dfsg-2+deb12u3_amd64.deb ...
+Unpacking u-boot-tools (2023.01+dfsg-2+deb12u3) ...
+Setting up libyaml-0-2:amd64 (0.2.5-1) ...
+Setting up libfdt1:amd64 (1.6.1-4+b1) ...
+Setting up libubootenv0.1:amd64 (0.3.2-1) ...
+Setting up device-tree-compiler (1.6.1-4+b1) ...
+Setting up u-boot-tools (2023.01+dfsg-2+deb12u3) ...
+Setting up libubootenv-tool (0.3.2-1) ...
+Processing triggers for libc-bin (2.36-9+deb12u14) ...
+/src/src/add-ons/kernel/debugger/disasm/arm64/Jamfile: No such file or directory
+/src/src/bin/debug/ltrace/arch/arm64/Jamfile: No such file or directory
+Starting build of type regular ... 
+Building Haiku Nightly 
+WebPositive not available on arm64 
+build-feature packages unavailable on arm64: glu mesa webkit 
+AddHaikuImagePackages: package glu not available! 
+AddHaikuImagePackages: package mesa not available! 
+AddHaikuImagePackages: package mesa_devel not available! 
+AddHaikuImagePackages: package mesa_swpipe not available! 
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...patience...
+...found 150843 target(s)...
+...updating 1036 target(s)...
+InitScript1 haiku.image-init-vars 
+DetermineHaikuRevision1 build/haiku-revision 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-init-vars 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-make-dirs 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-copy-files 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-extract-files 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-init-vars 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-make-dirs 
+AddTargetVariableToScript1 <unique!target>_target_502 
+AddTargetVariableToScript1 <unique!target>_target_16 
+CreateContainerMakeDirectoriesScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-make-dirs 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-copy-files 
+AddTargetVariableToScript1 <unique!target>_target_602 
+AddTargetVariableToScript1 <unique!target>_target_26 
+C++ objects/haiku/arm64/release/add-ons/kernel/bus_managers/acpi/BusManager.o 
+AddTargetVariableToScript1 <unique!target>_target_702 
+AddTargetVariableToScript1 <unique!target>_target_36 
+AddTargetVariableToScript1 <unique!target>_target_802 
+C++ objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc.o 
+AddTargetVariableToScript1 <unique!target>_target_601 
+CreateContainerMakeDirectoriesScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-make-dirs 
+AppendToContainerCopyFilesScript <hpkg_-haiku.hpkg>haiku.package-copy-files-dummy-data/firmware/iprowifi2100 
+AddTargetVariableToScript1 <unique!target>_target_46 
+AddTargetVariableToScript1 <unique!target>_target_902 
+AddTargetVariableToScript1 <unique!target>_target_701 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-apps 
+AppendToContainerCopyFilesScript <hpkg_-haiku.hpkg>haiku.package-copy-files-dummy-data/firmware/iprowifi2200 
+AddTargetVariableToScript1 <unique!target>_target_56 
+AddTargetVariableToScript1 <unique!target>_target_012 
+AddTargetVariableToScript1 <unique!target>_target_801 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-preferences 
+AppendToContainerCopyFilesScript <hpkg_-haiku.hpkg>haiku.package-copy-files-dummy-data/firmware/broadcom43xxn 
+AddTargetVariableToScript1 <unique!target>_target_66 
+AddTargetVariableToScript1 <unique!target>_target_112 
+AddTargetVariableToScript1 <unique!target>_target_901 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-data/deskbar/menu/Applications 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-extract-files 
+AddTargetVariableToScript1 <unique!target>_target_76 
+AddTargetVariableToScript1 <unique!target>_target_212 
+AddTargetVariableToScript1 <unique!target>_target_011 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-data/deskbar/menu/Desktop applets 
+AddTargetVariableToScript1 <unique!target>_target_312 
+AddTargetVariableToScript1 <unique!target>_target_86 
+AddTargetVariableToScript1 <unique!target>_target_111 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-data/deskbar/menu/Preferences 
+AddTargetVariableToScript1 <unique!target>_target_412 
+AddTargetVariableToScript1 <unique!target>_target_96 
+AddTargetVariableToScript1 <unique!target>_target_211 
+AppendToContainerMakeDirectoriesScriptAttributes <hpkg_-haiku.hpkg>haiku.package-make-dirs-attributes-dummy-data/deskbar/menu/Demos 
+AddTargetVariableToScript1 <unique!target>_target_512 
+AddVariableToScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/scripts/haiku.package-init-vars 
+AddTargetVariableToScript1 <unique!target>_target_311 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-init-vars 
+AddTargetVariableToScript1 <unique!target>_target_612 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-make-dirs 
+AddTargetVariableToScript1 <unique!target>_target_411 
+AddExtractFileToContainerExtractFilesScript <hpkg_-haiku.hpkg>haiku.package-extract-files-dummy-data/firmware/marvell88w8363-../data/system/data/firmware/marvell88w8363/88w8363-fw-3.6.2.2.zip 
+AddTargetVariableToScript1 <unique!target>_target_712 
+AddVariableToScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/scripts/haiku.package-init-vars 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-copy-files 
+C++ objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator.o 
+AddTargetVariableToScript1 <unique!target>_target_34 
+CreateContainerMakeDirectoriesScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-make-dirs 
+C++ objects/haiku/arm64/release/add-ons/translators/tiff/TIFFView.o 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-extract-files 
+AddTargetVariableToScript1 <unique!target>_target_44 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-init-vars 
+AddTargetVariableToScript1 <unique!target>_target_54 
+../src/add-ons/kernel/bus_managers/acpi/BusManager.cpp: In function 'status_t acpi_std_ops(int32, ...)':
+../src/add-ons/kernel/bus_managers/acpi/BusManager.cpp:213:70: error: 'get_boot_item' was not declared in this scope
+  213 |                         phys_addr_t* acpiRootPointer = (phys_addr_t*)get_boot_item(
+      |                                                                      ^~~~~~~~~~~~~
+AddTargetVariableToScript1 <unique!target>_target_64 
+AddTargetVariableToScript1 <unique!target>_target_74 
+AddTargetVariableToScript1 <unique!target>_target_84 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-make-dirs 
+AddTargetVariableToScript1 <unique!target>_target_511 
+AddTargetVariableToScript1 <unique!target>_target_94 
+AddTargetVariableToScript1 <unique!target>_target_611 
+AddTargetVariableToScript1 <unique!target>_target_05 
+AddTargetVariableToScript1 <unique!target>_target_711 
+AddTargetVariableToScript1 <unique!target>_target_15 
+AddTargetVariableToScript1 <unique!target>_target_811 
+AddVariableToScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/scripts/haiku.package-init-vars 
+AddTargetVariableToScript1 <unique!target>_target_911 
+InitScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-copy-files 
+CreateContainerMakeDirectoriesScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-make-dirs 
+AddTargetVariableToScript1 <unique!target>_target_021 
+PreprocessPackageOrRepositoryInfo1 objects/haiku/arm64/packaging/repositories/HaikuPorts-info 
+CopySetHaikuRevision1 objects/haiku/arm64/release/system/boot/efi/revisioned/boot_loader_efi 
+AddTargetVariableToScript1 <unique!target>_target_121 
+AddTargetVariableToScript1 <unique!target>_target_221 
+AddTargetVariableToScript1 <unique!target>_target_321 
+AddVariableToScript1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-init-vars 
+CopySetHaikuRevision1 objects/haiku/arm64/release/system/kernel/revisioned/kernel_arm64 
+CopySetHaikuRevision1 objects/haiku/arm64/release/system/libroot/revisioned/libroot.so 
+RepositoryCache1 objects/haiku/arm64/packaging/repositories/HaikuPorts 
+
+/tools/cross-tools-arm64/bin/aarch64-unknown-haiku-gcc -c "../src/add-ons/kernel/bus_managers/acpi/BusManager.cpp" -O2 -Wall -Wno-multichar -Wpointer-arith -Wsign-compare -Wno-ctor-dtor-privacy -Woverloaded-virtual -Werror -Wno-error=unused-but-set-variable -Wno-error=cpp -Wno-error=register -Wno-error=address-of-packed-member -Wno-error=stringop-overread -Wno-error=array-bounds -Wno-error=cast-align -Wno-error=format-truncation -fno-strict-aliasing -fno-delete-null-pointer-checks -march=armv8-a+crc -nostdinc -ffreestanding -finline -fno-semantic-interposition -fno-tree-vectorize -fno-exceptions -fno-use-cxa-atexit -D_KERNEL_MODE -DARCH_arm64 -D__HAIKU_PRIMARY_PACKAGING_ARCH=\"arm64\" -DHAIKU_DISTRO_COMPATIBILITY_DEFAULT -DHAIKU_TARGET_PLATFORM_HAIKU -DHAIKU_REGULAR_BUILD -DKDEBUG_LEVEL=1 -iquote ../build/user_config_headers -iquote ../build/config_headers -iquote ../src/add-ons/kernel/bus_managers/acpi -iquote objects/common/add-ons/kernel/bus_managers/acpi -iquote objects/linux/x86_64/common/add-ons/kernel/bus_managers/acpi -iquote objects/haiku/arm64/common/add-ons/kernel/bus_managers/acpi -iquote ../src/add-ons/kernel/bus_managers/acpi/acpica/include -iquote ../src/add-ons/kernel/bus_managers/acpi/acpica/include/platform -iquote ../src/add-ons/kernel/bus_managers/acpi/arch/arm64 -iquote ../src/add-ons/kernel/bus_managers/acpi/../pci -I ../headers/private/. -I ../headers/private/kernel -I ../headers/private/libroot -I ../headers/private/shared -I ../headers/private/kernel/boot/platform/efi -I ../headers/private/kernel/arch/arm64 -I objects/haiku/arm64/common/system/kernel -I ../headers/private/. -I ../headers/private/system -I ../headers/private/system/arch/arm64 -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/c++ -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/c++/aarch64-unknown-haiku -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/c++/backward -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/c++/ext -I ../headers/glibc -I ../headers/posix -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/gcc/include -I build_packages/gcc_syslibs_devel-13.3.0_2023_08_10-7-arm64/develop/headers/gcc/include-fixed -I ../headers -I ../headers/os -I ../headers/os/add-ons -I ../headers/os/add-ons/file_system -I ../headers/os/add-ons/graphics -I ../headers/os/add-ons/input_server -I ../headers/os/add-ons/registrar -I ../headers/os/add-ons/screen_saver -I ../headers/os/add-ons/tracker -I ../headers/os/app -I ../headers/os/device -I ../headers/os/drivers -I ../headers/os/game -I ../headers/os/interface -I ../headers/os/kernel -I ../headers/os/locale -I ../headers/os/media -I ../headers/os/mail -I ../headers/os/midi -I ../headers/os/midi2 -I ../headers/os/net -I ../headers/os/storage -I ../headers/os/support -I ../headers/os/translation -I ../headers/private/. -o "objects/haiku/arm64/release/add-ons/kernel/bus_managers/acpi/BusManager.o"
+
+...failed C++ objects/haiku/arm64/release/add-ons/kernel/bus_managers/acpi/BusManager.o ...
+...removing objects/haiku/arm64/release/add-ons/kernel/bus_managers/acpi/BusManager.o
+BuildEFILoader objects/haiku/arm64/release/system/boot/efi/haiku_loader.efi 
+AppendToContainerCopyFilesScript <hpkg_-haiku_loader.hpkg>haiku.package-copy-files-dummy-. 
+AppendToContainerCopyFilesScript <hpkg_-haiku.hpkg>haiku.package-copy-files-dummy-data/platform_loaders 
+Link objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc 
+SetType1 objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc 
+MimeSet1 objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc 
+SetVersion1 objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc 
+Chmod1 objects/haiku/arm64/release/add-ons/kernel/busses/mmc/designware/designware_mmc 
+Link objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+XRes1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+SetType1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+MimeSet1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+SetVersion1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+Chmod1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-add-ons/Translators 
+...on 100th target...
+CreateAppMimeDBEntries1 objects/haiku/arm64/release/add-ons/translators/tiff/TIFFTranslator_mimedb 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-STXTTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-pseudo.libtranslatorsutils 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->STXTTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->AVIFTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->BMPTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->GIFTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->HVIFTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->ICOTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->ICNSTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->JPEGTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->JPEG2000Translator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PCXTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PNGTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PPMTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PSDTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->RAWTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->RTFTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->SGITranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->TGATranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->TIFFTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->WebPTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->WonderBrushTranslator_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->Canon LIPS3 Compatible_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->Canon LIPS4 Compatible_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->Gutenprint_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PCL5 Compatible_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PCL6 Compatible_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->PS Compatible_mimedb 
+AddDirectoryToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>data/mime_db/-/<mimedb-app->Preview_mimedb 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-AVIFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-BMPTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-GIFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-HVIFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-ICOTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-ICNSTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-JPEGTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-JPEG2000Translator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-PCXTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-PNGTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-PPMTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-PSDTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-RAWTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-RTFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-SGITranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-TGATranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-TIFFTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-WebPTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-data/locale/catalogs/x-vnd.Haiku-WonderBrushTranslator 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-add-ons/media/plugins 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-add-ons/Print 
+AppendToContainerCopyFilesScript <hpkg_-haiku_datatranslators.hpkg>haiku.package-copy-files-dummy-add-ons/Print/transport 
+PreprocessPackageOrRepositoryInfo1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/haiku_loader-package-info 
+PreprocessPackageOrRepositoryInfo1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/haiku-package-info 
+PreprocessPackageOrRepositoryInfo1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/haiku_datatranslators-package-info 
+PreprocessPackageOrRepositoryInfo1 objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/mediatek_wifi_firmwares-package-info 
+UpdatePackageInfoRequires objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_datatranslators.hpkg/haiku_datatranslators-package-info 
+UpdatePackageInfoRequires objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku_loader.hpkg/haiku_loader-package-info 
+UpdatePackageInfoRequires objects/haiku/arm64/packaging/packages_build/regular/hpkg_-haiku.hpkg/haiku-package-info 
+UpdatePackageInfoRequires objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/mediatek_wifi_firmwares-package-info 
+BuildHaikuPackage1 objects/haiku/arm64/packaging/packages/mediatek_wifi_firmwares.hpkg 
+BuildHaikuPackage1 objects/haiku/arm64/packaging/packages/haiku_datatranslators.hpkg 
+BuildHaikuPackage1 objects/haiku/arm64/packaging/packages/haiku_loader.hpkg 
+haiku_datatranslators.hpkg: Removing and re-creating package contents dir ...
+mediatek_wifi_firmwares.hpkg: Removing and re-creating package contents dir ...
+haiku_loader.hpkg: Removing and re-creating package contents dir ...
+haiku_loader.hpkg: Collecting package contents ...
+mediatek_wifi_firmwares.hpkg: Collecting package contents ...
+mediatek_wifi_firmwares.hpkg: mimeset'ing package contents ...
+haiku_loader.hpkg: mimeset'ing package contents ...
+mediatek_wifi_firmwares.hpkg: Creating the package ...
+License 'MediaTek (firmware)' isn't contained in package!
+haiku_loader.hpkg: Creating the package ...
+haiku_datatranslators.hpkg: Collecting package contents ...
+haiku_datatranslators.hpkg: mimeset'ing package contents ...
+haiku_datatranslators.hpkg: Creating the package ...
+
+../build/scripts/build_haiku_package "objects/haiku/arm64/packaging/packages/mediatek_wifi_firmwares.hpkg" "objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/mediatek_wifi_firmwares-package-info" objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-init-vars objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-make-dirs objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-copy-files objects/haiku/arm64/packaging/packages_build/regular/hpkg_-mediatek_wifi_firmwares.hpkg/scripts/haiku.package-extract-files
+
+...failed BuildHaikuPackage1 objects/haiku/arm64/packaging/packages/mediatek_wifi_firmwares.hpkg ...
+...removing objects/haiku/arm64/packaging/packages/mediatek_wifi_firmwares.hpkg
+
+BUILD FAILURE:
+...failed updating 2 target(s)...
+...skipped 645 target(s)...
+...updated 156 target(s)...

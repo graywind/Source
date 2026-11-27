@@ -16,6 +16,7 @@
 #include <ACPI.h>
 #include <dpc.h>
 #include <KernelExport.h>
+#include <boot_item.h>
 #include <PCI.h>
 #include <drivers/smbios.h>
 
