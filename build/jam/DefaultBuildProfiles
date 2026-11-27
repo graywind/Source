@@ -173,14 +173,18 @@ rule DefineDefaultBuildProfiles
 				p7zip
 				;
 
-			if $(TARGET_ARCH) = arm64 {
+			# Activating the development toolchain is for VM use; a board
+			# image does not need it, and several of those packages are
+			# broken in the current pinned set (automake's hpkg is rejected
+			# by packagefs, which aborts the first-boot package transaction).
+			if $(TARGET_ARCH) = arm64 && $(HAIKU_ARM64_DEV_PACKAGES) {
 				# arm64 is mostly run in virtual machines straight from
 				# this image, never through Installer, which is what would
 				# install the development packages: activate them instead.
 				# Added before OptionalPackages, so they skip _packages_.
 				AddHaikuImageSystemPackages
 					# the Development and DevelopmentBase toolchain
-					autoconf binutils bison cdrtools flex gcc jam
+					autoconf automake binutils bison cdrtools flex gcc jam
 					libjpeg_turbo_devel libpng16_devel m4 make mawk
 					mkdepend mpc mpfr nasm openssl3_devel patch pkgconfig
 					texinfo zlib_devel zstd_devel
