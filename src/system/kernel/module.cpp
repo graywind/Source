@@ -2257,6 +2257,14 @@ get_module(const char* path, module_info** _info)
 	if (status == B_OK) {
 		ASSERT(module->ref_count >= 0);
 		module->ref_count++;
+		if (_info == NULL) {
+			// A caller that passes no place to store the module cannot be
+			// served; fail with the module named rather than faulting on a
+			// NULL write, and leave the recent log on the screen for KDL.
+			panic("get_module(\"%s\"): NULL info pointer @! syslog | tail -60",
+				path);
+			return B_BAD_VALUE;
+		}
 		*_info = module->info;
 	} else if ((module->flags & B_BUILT_IN_MODULE) == 0
 		&& module->ref_count == 0) {
