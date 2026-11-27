@@ -36,6 +36,7 @@
 #include <fs/KPath.h>
 #include <interrupts.h>
 #include <kdevice_manager.h>
+#include <driver_settings.h>
 #include <kdriver_settings.h>
 #include <kernel_daemon.h>
 #include <kmodule.h>
@@ -391,7 +392,8 @@ main2(void* /*unused*/)
 	boot_splash_init(sKernelArgs.boot_splash);
 
 	sBootStage = 0;
-	spawn_kernel_thread(&boot_watchdog, "boot watchdog", B_NORMAL_PRIORITY);
+	spawn_kernel_thread(&boot_watchdog, "boot watchdog",
+		B_NORMAL_PRIORITY, NULL);
 
 	commpage_init_post_cpus();
 #ifdef _COMPAT_MODE
