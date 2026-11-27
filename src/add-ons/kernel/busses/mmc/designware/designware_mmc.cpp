@@ -201,6 +201,7 @@ private:
 									{ fRegs[offset / 4] = value; }
 
 			status_t			_ResetBits(uint32 bits);
+			status_t			_ResetDma();
 			void				_ResetData();
 			status_t			_WaitNotBusy(bigtime_t timeout);
 			status_t			_SendClockUpdate();
@@ -380,7 +381,8 @@ DwMmc::Init(device_node* fdtNode)
 
 	// internal DMA: software reset, no IDMAC interrupts (completion is
 	// signalled by "data transfer over")
-	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	if (_ResetDma() != B_OK)
+		return B_NOT_INITIALIZED;
 	if (f64BitDma) {
 		_Write(DW_MMC_IDINTEN64, 0);
 		_Write(DW_MMC_IDSTS64, DW_MMC_IDSTS_ALL);
@@ -402,6 +404,26 @@ DwMmc::Init(device_node* fdtNode)
 
 	_Write(DW_MMC_CTYPE, DW_MMC_CTYPE_1BIT);
 	return SetClock(400);
+}
+
+
+/*!	Resets the internal DMA controller and waits for it to finish.
+
+	BMOD.SWR is self-clearing; programming the controller while the reset is
+	still in progress can be dropped, leaving the IDMAC disabled and every
+	data transfer to time out with a FIFO underrun.
+*/
+status_t
+DwMmc::_ResetDma()
+{
+	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	for (int i = 0; i < 100; i++) {
+		if ((_Read(DW_MMC_BMOD) & DW_MMC_BMOD_SWR) == 0)
+			return B_OK;
+		spin(10);
+	}
+	ERROR("IDMAC reset did not complete\n");
+	return B_TIMED_OUT;
 }
 
 
@@ -777,9 +799,10 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 		return B_BUSY;
 
 	// fresh FIFO and DMA state for each transfer
-	if (_ResetBits(DW_MMC_CTRL_FIFO_RESET) != B_OK)
+	if (_ResetBits(DW_MMC_CTRL_FIFO_RESET | DW_MMC_CTRL_DMA_RESET) != B_OK)
 		return B_IO_ERROR;
-	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	if (_ResetDma() != B_OK)
+		return B_IO_ERROR;
 
 	_Write(DW_MMC_BLKSIZ, kBlockSize);
 	_Write(DW_MMC_BYTCNT, length);
@@ -795,6 +818,10 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL) | DW_MMC_CTRL_DMA_ENABLE
 		| DW_MMC_CTRL_USE_IDMAC);
 	_Write(DW_MMC_BMOD, DW_MMC_BMOD_FB | DW_MMC_BMOD_DE);
+	dprintf("dw_mmc: bmod %#" B_PRIx32 " ctrl %#" B_PRIx32
+		", dbaddr %#" B_PRIxPHYSADDR "\n", _Read(DW_MMC_BMOD),
+		_Read(DW_MMC_CTRL),
+		f64BitDma ? 0 : (phys_addr_t)_Read(DW_MMC_DBADDR));
 	_Write(DW_MMC_PLDMND, 1);
 
 	uint32 flags = DW_MMC_CMD_DAT_EXP;
