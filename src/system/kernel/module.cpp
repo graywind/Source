@@ -695,12 +695,32 @@ get_dependent_modules(struct module* module)
 
 	TRACE(("resolving module dependencies...\n"));
 
+	static const char* sReportedDependencies[8];
+	static int32 sReportedDependencyCount = 0;
+
 	for (int32 i = 0; dependencies[i].name != NULL; i++) {
 		status_t status = get_module(dependencies[i].name,
 			dependencies[i].info);
 		if (status < B_OK) {
-			dprintf("loading dependent module %s of %s failed!\n",
-				dependencies[i].name, module->name);
+			// The device manager probes many drivers, and a dependency that
+			// is unavailable on this platform (ACPI on a device-tree board,
+			// for example) fails for every one of them. Name each dependency
+			// once instead of once per probe.
+			bool reported = false;
+			for (int32 j = 0; j < sReportedDependencyCount; j++) {
+				if (strcmp(sReportedDependencies[j], dependencies[i].name) == 0) {
+					reported = true;
+					break;
+				}
+			}
+			if (!reported
+				&& sReportedDependencyCount
+					< (int32)B_COUNT_OF(sReportedDependencies)) {
+				sReportedDependencies[sReportedDependencyCount++]
+					= dependencies[i].name;
+				dprintf("loading dependent module %s of %s failed!\n",
+					dependencies[i].name, module->name);
+			}
 			return status;
 		}
 	}

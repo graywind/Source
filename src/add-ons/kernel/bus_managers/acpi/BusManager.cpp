@@ -16,6 +16,7 @@
 #include <ACPI.h>
 #include <dpc.h>
 #include <KernelExport.h>
+#include <boot_item.h>
 #include <PCI.h>
 #include <drivers/smbios.h>
 
@@ -203,6 +204,22 @@ acpi_std_ops(int32 op,...)
 			if (acpiDisabled) {
 				ERROR("ACPI disabled\n");
 				return ENOSYS;
+			}
+
+			// Without an RSDP there are no ACPI tables to work with: the
+			// platform describes itself another way (a device tree, or
+			// firmware that offers neither). Return before ACPICA starts, so
+			// every driver that asks for this bus manager does not get a
+			// table-initialization failure and an SCI-handler error logged.
+			phys_addr_t* acpiRootPointer = (phys_addr_t*)get_boot_item(
+				"ACPI_ROOT_POINTER", NULL);
+			if (acpiRootPointer == NULL || *acpiRootPointer == 0) {
+				static bool sReportedNoRsdp = false;
+				if (!sReportedNoRsdp) {
+					dprintf("acpi: no RSDP, ACPI not available\n");
+					sReportedNoRsdp = true;
+				}
+				return B_DEVICE_NOT_FOUND;
 			}
 
 			if (gDPC->new_dpc_queue(&gDPCHandle, "acpi_task",
