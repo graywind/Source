@@ -56,6 +56,31 @@ static const bigtime_t kDataTimeout = 5000000;
 static device_manager_info* sDeviceManager;
 
 
+#if defined(__aarch64__)
+/*!	Cleans and invalidates the data cache for a range to the point of
+	coherency. The internal DMA engine is not coherent with the CPU on this
+	SoC, so anything it reads has to reach memory first.
+*/
+static void
+clean_invalidate_dcache(void* address, size_t length)
+{
+	uint64 ctr;
+	asm volatile ("mrs %0, ctr_el0" : "=r"(ctr));
+	size_t lineSize = 4 << ((ctr >> 16) & 0xf);
+	uintptr_t start = (uintptr_t)address & ~(lineSize - 1);
+	uintptr_t end = (uintptr_t)address + length;
+	for (uintptr_t line = start; line < end; line += lineSize)
+		asm volatile ("dc civac, %0" : : "r"(line) : "memory");
+	asm volatile ("dsb sy" : : : "memory");
+}
+#else
+static void
+clean_invalidate_dcache(void*, size_t)
+{
+}
+#endif
+
+
 static const char* const kCompatible[] = {
 	"starfive,jh7110-mmc",
 	"snps,dw-mshc",
@@ -201,6 +226,7 @@ private:
 									{ fRegs[offset / 4] = value; }
 
 			status_t			_ResetBits(uint32 bits);
+			status_t			_ResetDma();
 			void				_ResetData();
 			status_t			_WaitNotBusy(bigtime_t timeout);
 			status_t			_SendClockUpdate();
@@ -380,7 +406,8 @@ DwMmc::Init(device_node* fdtNode)
 
 	// internal DMA: software reset, no IDMAC interrupts (completion is
 	// signalled by "data transfer over")
-	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	if (_ResetDma() != B_OK)
+		return B_NOT_INITIALIZED;
 	if (f64BitDma) {
 		_Write(DW_MMC_IDINTEN64, 0);
 		_Write(DW_MMC_IDSTS64, DW_MMC_IDSTS_ALL);
@@ -400,8 +427,32 @@ DwMmc::Init(device_node* fdtNode)
 		| DW_MMC_INT_DTO | DW_MMC_INT_CMD_ERROR | DW_MMC_INT_DATA_ERROR);
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL) | DW_MMC_CTRL_INT_ENABLE);
 
+	// maximum response (7:0) and data (31:8) timeouts; the counter runs on
+	// the card clock, so the same value is a different real time per speed
+	_Write(DW_MMC_TMOUT, 0xffffffff);
+
 	_Write(DW_MMC_CTYPE, DW_MMC_CTYPE_1BIT);
 	return SetClock(400);
+}
+
+
+/*!	Resets the internal DMA controller and waits for it to finish.
+
+	BMOD.SWR is self-clearing; programming the controller while the reset is
+	still in progress can be dropped, leaving the IDMAC disabled and every
+	data transfer to time out with a FIFO underrun.
+*/
+status_t
+DwMmc::_ResetDma()
+{
+	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	for (int i = 0; i < 100; i++) {
+		if ((_Read(DW_MMC_BMOD) & DW_MMC_BMOD_SWR) == 0)
+			return B_OK;
+		spin(10);
+	}
+	ERROR("IDMAC reset did not complete\n");
+	return B_TIMED_OUT;
 }
 
 
@@ -468,9 +519,11 @@ DwMmc::SetClock(uint32 kilohertz)
 		return B_OK;
 
 	uint32 hertz = kilohertz * 1000;
-	// card clock = ciu / (2 * divider), divider 0 bypasses
-	uint32 divider = fCiuRate <= hertz
-		? 0 : (fCiuRate + 2 * hertz - 1) / (2 * hertz);
+	// The controller divides the ciu clock by 2 * (CLKDIV + 1), so the
+	// register takes ceil(ciu / 2F) - 1 and 0 means the fastest rate.
+	uint32 divider = (fCiuRate + 2 * hertz - 1) / (2 * hertz);
+	if (divider > 0)
+		divider--;
 
 	_WaitNotBusy(500000);
 
@@ -745,6 +798,9 @@ DwMmc::_SetupDescriptors(IOOperation* operation, uint32* _length)
 		: &((dw_mmc_desc32*)fDescriptors)[index - 1].des0;
 	*des0 = (*des0 & ~(DW_MMC_DES0_DIC | DW_MMC_DES0_CH)) | DW_MMC_DES0_LD;
 
+	// make the chain visible to the IDMAC before it fetches it
+	clean_invalidate_dcache(fDescriptors,
+		index * (f64BitDma ? sizeof(dw_mmc_desc64) : sizeof(dw_mmc_desc32)));
 	__sync_synchronize();
 	*_length = total;
 	return B_OK;
@@ -765,6 +821,22 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 	if (status != B_OK)
 		return status;
 
+	// The IDMAC does not snoop the CPU caches. Drop any stale lines covering
+	// the buffers so the controller's view of memory is what it acts on, and
+	// the CPU refetches what it reads back. The vectors are known here only
+	// by physical address, so map each one briefly.
+	for (uint32 i = 0; i < operation->VecCount(); i++) {
+		const generic_io_vec& vec = operation->Vecs()[i];
+		void* mapped = NULL;
+		area_id area = map_physical_memory("dw_mmc dma buffer",
+			(phys_addr_t)vec.base, (size_t)vec.length, B_ANY_KERNEL_ADDRESS,
+			B_KERNEL_READ_AREA | B_KERNEL_WRITE_AREA, &mapped);
+		if (area >= B_OK) {
+			clean_invalidate_dcache(mapped, vec.length);
+			delete_area(area);
+		}
+	}
+
 	bool isWrite = operation->IsWrite();
 	bool multiple = command == SD_READ_MULTIPLE_BLOCKS
 		|| command == SD_WRITE_MULTIPLE_BLOCKS;
@@ -773,9 +845,10 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 		return B_BUSY;
 
 	// fresh FIFO and DMA state for each transfer
-	if (_ResetBits(DW_MMC_CTRL_FIFO_RESET) != B_OK)
+	if (_ResetBits(DW_MMC_CTRL_FIFO_RESET | DW_MMC_CTRL_DMA_RESET) != B_OK)
 		return B_IO_ERROR;
-	_Write(DW_MMC_BMOD, DW_MMC_BMOD_SWR);
+	if (_ResetDma() != B_OK)
+		return B_IO_ERROR;
 
 	_Write(DW_MMC_BLKSIZ, kBlockSize);
 	_Write(DW_MMC_BYTCNT, length);
@@ -798,7 +871,6 @@ DwMmc::DoIO(uint8 command, IOOperation* operation, bool offsetAsSectors)
 		flags |= DW_MMC_CMD_DAT_WR;
 	if (multiple)
 		flags |= DW_MMC_CMD_SEND_STOP;	// CMD12 sent by the controller
-
 	uint32 response;
 	status = _Execute(command, offset / (offsetAsSectors ? kBlockSize : 1),
 		flags, &response, true);
@@ -1041,8 +1113,6 @@ register_child_devices(void* cookie)
 	sDeviceManager->put_node(fdtNode);
 	if (!haveRegs)
 		return B_BAD_DATA;
-
-	dprintf("dw_mmc: probe %#" B_PRIx64 "\n", regs);
 	volatile uint32* registers;
 	area_id area = map_physical_memory("dw_mmc probe", regs, DW_MMC_REGS_SIZE,
 		B_ANY_KERNEL_ADDRESS, B_KERNEL_READ_AREA, (void**)&registers);
