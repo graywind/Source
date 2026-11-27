@@ -427,6 +427,10 @@ DwMmc::Init(device_node* fdtNode)
 		| DW_MMC_INT_DTO | DW_MMC_INT_CMD_ERROR | DW_MMC_INT_DATA_ERROR);
 	_Write(DW_MMC_CTRL, _Read(DW_MMC_CTRL) | DW_MMC_CTRL_INT_ENABLE);
 
+	// maximum response (7:0) and data (31:8) timeouts; the counter runs on
+	// the card clock, so the same value is a different real time per speed
+	_Write(DW_MMC_TMOUT, 0xffffffff);
+
 	_Write(DW_MMC_CTYPE, DW_MMC_CTYPE_1BIT);
 	return SetClock(400);
 }
@@ -515,9 +519,11 @@ DwMmc::SetClock(uint32 kilohertz)
 		return B_OK;
 
 	uint32 hertz = kilohertz * 1000;
-	// card clock = ciu / (2 * divider), divider 0 bypasses
-	uint32 divider = fCiuRate <= hertz
-		? 0 : (fCiuRate + 2 * hertz - 1) / (2 * hertz);
+	// The controller divides the ciu clock by 2 * (CLKDIV + 1), so the
+	// register takes ceil(ciu / 2F) - 1 and 0 means the fastest rate.
+	uint32 divider = (fCiuRate + 2 * hertz - 1) / (2 * hertz);
+	if (divider > 0)
+		divider--;
 
 	_WaitNotBusy(500000);
 
@@ -541,7 +547,7 @@ DwMmc::SetClock(uint32 kilohertz)
 	dprintf("dw_mmc: clock %" B_PRIu32 " kHz, divider %" B_PRIu32
 		", ciu assumed %" B_PRIu32 " Hz, actual %" B_PRIu32 " Hz\n",
 		kilohertz, divider, fCiuRate,
-		divider == 0 ? fCiuRate / 2 : fCiuRate / (2 * divider));
+		fCiuRate / (2 * (divider + 1)));
 	TRACE("card clock %" B_PRIu32 " kHz (divider %" B_PRIu32 ")\n",
 		divider == 0 ? fCiuRate / 1000 : fCiuRate / (2000 * divider),
 		divider);
