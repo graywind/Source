@@ -26,6 +26,8 @@
 #endif
 #include <condition_variable.h>
 #include <cpu.h>
+#include <smp.h>
+#include <stdlib.h>
 #include <debug.h>
 #include <DPC.h>
 #include <elf.h>
@@ -291,6 +293,92 @@ _start(kernel_args *bootKernelArgs, int currentCPU)
 }
 
 
+static int32 sBootWatchdogCompleted = 0;
+static volatile int32 sBootStage = 0;
+
+static const char* const kBootStageNames[] = {
+	"initialising modules",
+	"bootstrapping file systems",
+	"initialising the device manager",
+	"mounting the boot file system",
+	"initialising CPU modules",
+	"initialising the VM",
+	"initialising the debugger",
+	"registering device driver paths",
+	"starting launch_daemon",
+};
+
+
+/*!	Panics if the boot does not reach userland in time.
+
+	A stall in the kernel otherwise leaves nothing behind: no userland means
+	no syslog, and without the debug screen the panel shows only the boot
+	splash. Turning the screen console on here, after the stall has already
+	happened, does not disturb whatever caused it.
+*/
+static int32
+boot_watchdog(void* /*unused*/)
+{
+	const bigtime_t start = system_time();
+	bigtime_t timeout = 300 * 1000000LL;
+
+	// The setting lives on the boot volume, which may not be mounted yet.
+	for (int attempt = 0; attempt < 4; attempt++) {
+		snooze(attempt == 0 ? 1000000 : 3000000);
+		if (atomic_get(&sBootWatchdogCompleted) != 0)
+			return 0;
+
+		void* settings = load_driver_settings("kernel");
+		if (settings == NULL)
+			continue;
+
+		const char* value = get_driver_parameter(settings,
+			"boot_watchdog_timeout", NULL, NULL);
+		if (value != NULL) {
+			char* end = NULL;
+			long seconds = strtol(value, &end, 10);
+			if (end != NULL && *end == '\0') {
+				if (seconds <= 0)
+					timeout = -1;
+				else
+					timeout = (bigtime_t)seconds * 1000000LL;
+			}
+		}
+		unload_driver_settings(settings);
+		break;
+	}
+
+	if (timeout <= 0)
+		return 0;
+
+	while (atomic_get(&sBootWatchdogCompleted) == 0
+		&& system_time() - start < timeout) {
+		snooze(1000000);
+	}
+
+	if (atomic_get(&sBootWatchdogCompleted) != 0)
+		return 0;
+
+	debug_start_screen_debug_output();
+
+	const int32 stage = sBootStage;
+	dprintf("boot watchdog: boot did not finish within %" B_PRId64 " s\n",
+		timeout / 1000000);
+	if (stage >= 0 && stage < (int32)B_COUNT_OF(kBootStageNames))
+		dprintf("boot watchdog: stalled while %s\n", kBootStageNames[stage]);
+
+	int32 cpuCount = smp_get_num_cpus();
+	for (int32 cpu = 0; cpu < cpuCount; cpu++) {
+		Thread* thread = gCPU[cpu].running_thread;
+		dprintf("boot watchdog: cpu%" B_PRId32 ": %s\n", cpu,
+			thread != NULL ? thread->name : "idle");
+	}
+
+	panic("boot watchdog: the boot did not complete\n");
+	return 0;
+}
+
+
 static int32
 main2(void* /*unused*/)
 {
@@ -301,6 +389,9 @@ main2(void* /*unused*/)
 		SYSTEM_PROFILE_INTERVAL);
 #endif
 	boot_splash_init(sKernelArgs.boot_splash);
+
+	sBootStage = 0;
+	spawn_kernel_thread(&boot_watchdog, "boot watchdog", B_NORMAL_PRIORITY);
 
 	commpage_init_post_cpus();
 #ifdef _COMPAT_MODE
@@ -333,10 +424,12 @@ main2(void* /*unused*/)
 	/* bootstrap all the filesystems */
 	TRACE("Bootstrap file systems\n");
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_2_BOOTSTRAP_FS);
+	sBootStage = 1;
 	vfs_bootstrap_file_systems();
 
 	TRACE("Init Device Manager\n");
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_3_INIT_DEVICES);
+	sBootStage = 2;
 	device_manager_init(&sKernelArgs);
 
 	TRACE("Add preloaded old-style drivers\n");
@@ -346,6 +439,7 @@ main2(void* /*unused*/)
 
 	TRACE("Mount boot file system\n");
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_4_MOUNT_BOOT_FS);
+	sBootStage = 3;
 	vfs_mount_boot_file_system(&sKernelArgs);
 
 #if ENABLE_SWAP_SUPPORT
@@ -355,10 +449,12 @@ main2(void* /*unused*/)
 
 	// CPU specific modules may now be available
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_5_INIT_CPU_MODULES);
+	sBootStage = 4;
 	cpu_init_post_modules(&sKernelArgs);
 
 	TRACE("vm_init_post_modules\n");
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_6_INIT_VM_MODULES);
+	sBootStage = 5;
 	vm_init_post_modules(&sKernelArgs);
 
 	TRACE("debug_init_post_modules\n");
@@ -368,6 +464,7 @@ main2(void* /*unused*/)
 	device_manager_init_post_modules(&sKernelArgs);
 
 	boot_splash_set_stage(BOOT_SPLASH_STAGE_7_RUN_BOOT_SCRIPT);
+	sBootStage = 8;
 	boot_splash_uninit();
 		// NOTE: We could introduce a syscall to draw more icons indicating
 		// stages in the boot script itself. Then we should not free the image.
@@ -407,6 +504,9 @@ main2(void* /*unused*/)
 				args[0], thread);
 		}
 	}
+
+	// The kernel has done its part; userland stalls are a different problem.
+	atomic_set(&sBootWatchdogCompleted, 1);
 
 	return 0;
 }
